@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
-const EmployeeForm = () => {
+const EmployeeUpdateForm = () => {
+  const { id } = useParams(); // To get the employee ID from URL params
   const navigate = useNavigate();
 
   const [employeeData, setEmployeeData] = useState({
@@ -15,8 +16,24 @@ const EmployeeForm = () => {
     role: "",
   });
 
-  const [error, setError] = useState(""); // For displaying error message
-  const [success, setSuccess] = useState(""); // For displaying success message
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  // Fetch employee data when the component mounts
+  useEffect(() => {
+    const fetchEmployeeData = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:5000/api/employees/${id}`,
+        );
+        setEmployeeData(response.data);
+      } catch (err) {
+        setError("Error fetching employee data");
+      }
+    };
+
+    fetchEmployeeData();
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,31 +44,16 @@ const EmployeeForm = () => {
     e.preventDefault();
 
     try {
-      await axios.post("http://localhost:5000/api/employees", employeeData);
-      setSuccess("Employee added successfully!");
-      setError(""); // Clear any previous error message
-      setEmployeeData({
-        name: "",
-        employeeId: "",
-        email: "",
-        phone: "",
-        department: "HR",
-        dateOfJoining: "",
-        role: "",
-      });
+      const response = await axios.put(
+        `http://localhost:5000/api/employees/${id}`,
+        employeeData,
+      );
+      setSuccess(response.data.message);
+      setError("");
     } catch (err) {
-      if (err.response) {
-        const backendErrors = {
-          "Employee ID already exists": "Employee ID already exists.",
-          "Email already exists": "Email already exists.",
-        };
-        setError(
-          backendErrors[err.response.data.error] ||
-            "An error occurred while adding the employee.",
-        );
-      } else {
-        setError("Error adding employee.");
-      }
+      setError(
+        err.response ? err.response.data.error : "Error updating employee",
+      );
     }
   };
 
@@ -61,7 +63,7 @@ const EmployeeForm = () => {
 
   return (
     <div>
-      <h1>Employee Form</h1>
+      <h1>Update Employee</h1>
       <form onSubmit={handleSubmit}>
         {/* Input fields */}
         <div>
@@ -131,17 +133,16 @@ const EmployeeForm = () => {
           />
         </div>
 
-        <button type="submit">Submit</button>
+        <button type="submit">Update</button>
         <button type="button" onClick={handleNavigate}>
           View Employees
         </button>
       </form>
 
-      {/* Display success and error messages */}
       {error && <p style={{ color: "red" }}>{error}</p>}
       {success && <p style={{ color: "green" }}>{success}</p>}
     </div>
   );
 };
 
-export default EmployeeForm;
+export default EmployeeUpdateForm;

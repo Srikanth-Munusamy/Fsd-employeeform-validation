@@ -92,6 +92,77 @@ router.get("/employees/:id", async (req, res) => {
   }
 });
 
+// Route to update an employee by ID
+router.put("/employees/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, employeeId, email, phone, department, dateOfJoining, role } =
+    req.body;
+
+  // Input validations
+  if (
+    !name ||
+    !employeeId ||
+    !email ||
+    !phone ||
+    !department ||
+    !dateOfJoining ||
+    !role
+  ) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  try {
+    // Check if the employee exists
+    const [existingEmployee] = await db.query(
+      "SELECT * FROM employees WHERE id = ?",
+      [id],
+    );
+    if (existingEmployee.length === 0) {
+      return res.status(404).json({ error: "Employee not found" });
+    }
+
+    // Check for duplicate employeeId (if the employeeId is changed)
+    const [existingEmployeeId] = await db.query(
+      "SELECT * FROM employees WHERE employee_id = ? AND id != ?",
+      [employeeId, id],
+    );
+    if (existingEmployeeId.length > 0) {
+      return res.status(400).json({ error: "Employee ID already exists" });
+    }
+
+    // Check for duplicate email (if the email is changed)
+    const [existingEmail] = await db.query(
+      "SELECT * FROM employees WHERE email = ? AND id != ?",
+      [email, id],
+    );
+    if (existingEmail.length > 0) {
+      return res.status(400).json({ error: "Email already exists" });
+    }
+
+    // Update the employee details
+    const sql = `
+      UPDATE employees
+      SET name = ?, employee_id = ?, email = ?, phone = ?, department = ?, date_of_joining = ?, role = ?
+      WHERE id = ?
+    `;
+    await db.query(sql, [
+      name,
+      employeeId,
+      email,
+      phone,
+      department,
+      dateOfJoining,
+      role,
+      id,
+    ]);
+
+    return res.status(200).json({ message: "Employee updated successfully" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Error updating employee" });
+  }
+});
+
 // Route to delete an employee by ID
 router.delete("/employees/:id", async (req, res) => {
   const { id } = req.params;
