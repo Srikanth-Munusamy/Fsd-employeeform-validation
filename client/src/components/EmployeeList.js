@@ -94,6 +94,20 @@ const EmployeeList = () => {
                   >
                     Delete
                   </button>
+                  <button
+                    onClick={() => navigate(`/employees/update/${emp.id}`)} // Navigate to update form
+                    style={{
+                      padding: "5px 10px",
+                      backgroundColor: "#007BFF",
+                      color: "#fff",
+                      border: "none",
+                      cursor: "pointer",
+                      borderRadius: "3px",
+                      marginLeft: "10px",
+                    }}
+                  >
+                    Edit
+                  </button>
                 </td>
               </tr>
             ))

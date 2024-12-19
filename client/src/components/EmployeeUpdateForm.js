@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 
 const EmployeeUpdateForm = () => {
-  const { id } = useParams(); // To get the employee ID from URL params
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [employeeData, setEmployeeData] = useState({
